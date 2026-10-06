@@ -11,6 +11,8 @@ class FakeAuthRepository(
 
     var shouldFailAuth: Boolean = false
     val signUpCalls: MutableList<Pair<String, String>> = mutableListOf()
+    /** Versión de la política aceptada en cada alta, en el mismo orden que [signUpCalls]. */
+    val signUpPolicyVersions: MutableList<String> = mutableListOf()
     val signInCalls: MutableList<Pair<String, String>> = mutableListOf()
 
     override val currentUserId: String?
@@ -18,9 +20,10 @@ class FakeAuthRepository(
 
     override val authStateUserId: Flow<String?> = userIdFlow
 
-    override suspend fun signUp(email: String, password: String) {
+    override suspend fun signUp(email: String, password: String, privacyPolicyVersion: String) {
         if (shouldFailAuth) error("Simulated sign up failure")
         signUpCalls.add(email to password)
+        signUpPolicyVersions.add(privacyPolicyVersion)
         userIdFlow.value = "test-user"
     }
 

@@ -25,11 +25,18 @@ class FirebaseAuthRepository(
         awaitClose { auth.removeAuthStateListener(listener) }
     }.distinctUntilChanged()
 
-    override suspend fun signUp(email: String, password: String) {
+    override suspend fun signUp(email: String, password: String, privacyPolicyVersion: String) {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val uid = result.user?.uid ?: error("No se pudo crear el usuario")
+        val now = Timestamp.now()
         firestore.collection("users").document(uid)
-            .set(mapOf("email" to email, "createdAt" to Timestamp.now()))
+            .set(
+                mapOf(
+                    "email" to email,
+                    "createdAt" to now,
+                    "privacyConsent" to mapOf("version" to privacyPolicyVersion, "acceptedAt" to now),
+                ),
+            )
             .await()
     }
 

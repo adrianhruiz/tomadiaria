@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
@@ -43,10 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adrianhruiz.tomadiaria.data.backup.BackupSerializer
+import com.adrianhruiz.tomadiaria.legal.PrivacyPolicy
 import com.adrianhruiz.tomadiaria.ui.backup.BackupUiState
 import com.adrianhruiz.tomadiaria.ui.backup.BackupViewModel
 
@@ -62,6 +65,7 @@ fun DashboardScreen(
     backupViewModel: BackupViewModel = viewModel(factory = BackupViewModel.Factory),
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val backupState by backupViewModel.uiState.collectAsStateWithLifecycle()
     val backupSnackbarHostState = remember { SnackbarHostState() }
     val exportLauncher = rememberLauncherForActivityResult(
@@ -131,7 +135,7 @@ fun DashboardScreen(
                         backupState is BackupUiState.Importing
                     var menuExpanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { menuExpanded = true }, enabled = !backupBusy) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Copias de mis datos")
+                        Icon(Icons.Default.MoreVert, contentDescription = "Más opciones")
                     }
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                         DropdownMenuItem(
@@ -150,6 +154,14 @@ fun DashboardScreen(
                             onClick = {
                                 menuExpanded = false
                                 importLauncher.launch(arrayOf("application/json"))
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Política de privacidad") },
+                            leadingIcon = { Icon(Icons.Default.Policy, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                uriHandler.openUri(PrivacyPolicy.URL)
                             },
                         )
                     }

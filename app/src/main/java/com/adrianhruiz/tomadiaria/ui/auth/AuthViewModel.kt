@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adrianhruiz.tomadiaria.TomaDiariaApp
 import com.adrianhruiz.tomadiaria.data.repository.AuthRepository
+import com.adrianhruiz.tomadiaria.legal.PrivacyPolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,8 @@ data class AuthUiState(
     val password: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    /** Solo cuenta en el registro: sin este consentimiento explícito no se crea la cuenta. */
+    val acceptedPrivacyPolicy: Boolean = false,
 )
 
 class AuthViewModel(
@@ -33,6 +36,10 @@ class AuthViewModel(
 
     fun onPasswordChanged(value: String) {
         _uiState.update { it.copy(password = value, errorMessage = null) }
+    }
+
+    fun onPrivacyPolicyAcceptedChanged(accepted: Boolean) {
+        _uiState.update { it.copy(acceptedPrivacyPolicy = accepted, errorMessage = null) }
     }
 
     fun signIn(onSuccess: () -> Unit) {
@@ -60,10 +67,14 @@ class AuthViewModel(
             _uiState.update { it.copy(errorMessage = "La contraseña debe tener al menos 6 caracteres.") }
             return
         }
+        if (!state.acceptedPrivacyPolicy) {
+            _uiState.update { it.copy(errorMessage = "Para crear la cuenta tienes que aceptar la política de privacidad.") }
+            return
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                authRepository.signUp(state.email.trim(), state.password)
+                authRepository.signUp(state.email.trim(), state.password, PrivacyPolicy.VERSION)
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = "No se pudo crear la cuenta. ¿Quizá ya existe ese email?") }

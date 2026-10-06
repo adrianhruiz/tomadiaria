@@ -1,6 +1,7 @@
 package com.adrianhruiz.tomadiaria.ui.auth
 
 import com.adrianhruiz.tomadiaria.data.repository.FakeAuthRepository
+import com.adrianhruiz.tomadiaria.legal.PrivacyPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -95,6 +96,7 @@ class AuthViewModelTest {
         val viewModel = AuthViewModel(repository)
         viewModel.onEmailChanged("new@test.com")
         viewModel.onPasswordChanged("secret1")
+        viewModel.onPrivacyPolicyAcceptedChanged(true)
         var succeeded = false
 
         viewModel.signUp { succeeded = true }
@@ -102,5 +104,36 @@ class AuthViewModelTest {
 
         assertTrue(succeeded)
         assertEquals(listOf("new@test.com" to "secret1"), repository.signUpCalls)
+    }
+
+    @Test
+    fun `signUp is refused until the privacy policy is accepted`() = runTest(dispatcher) {
+        val repository = FakeAuthRepository()
+        val viewModel = AuthViewModel(repository)
+        viewModel.onEmailChanged("new@test.com")
+        viewModel.onPasswordChanged("secret1")
+
+        viewModel.signUp {}
+        advanceUntilIdle()
+
+        assertEquals(
+            "Para crear la cuenta tienes que aceptar la política de privacidad.",
+            viewModel.uiState.value.errorMessage,
+        )
+        assertTrue(repository.signUpCalls.isEmpty())
+    }
+
+    @Test
+    fun `signUp records the version of the privacy policy that was accepted`() = runTest(dispatcher) {
+        val repository = FakeAuthRepository()
+        val viewModel = AuthViewModel(repository)
+        viewModel.onEmailChanged("new@test.com")
+        viewModel.onPasswordChanged("secret1")
+        viewModel.onPrivacyPolicyAcceptedChanged(true)
+
+        viewModel.signUp {}
+        advanceUntilIdle()
+
+        assertEquals(listOf(PrivacyPolicy.VERSION), repository.signUpPolicyVersions)
     }
 }
