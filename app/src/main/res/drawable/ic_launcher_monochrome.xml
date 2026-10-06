@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silueta de la cápsula para los iconos temáticos de Android 13+: el sistema la tiñe. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+
+        <!-- Mitad rellena -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M53,42 L40,42 A12,12 0 0,0 40,66 L53,66 Z" />
+
+        <!-- Mitad en contorno, para distinguir las dos mitades sin color -->
+        <path
+            android:pathData="M55,43 L68,43 A11,11 0 0,1 68,65 L55,65 Z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2" />
+    </group>
+</vector>
