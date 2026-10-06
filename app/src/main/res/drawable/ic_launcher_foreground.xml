@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Cápsula de TomaDiaria. El diseño maestro está en design/icono.svg: si cambias uno, cambia el otro. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- pill capsule, left half -->
-    <path
-        android:pathData="M54,42 L38,42 A12,12 0 0,0 38,66 L54,66 Z"
-        android:fillColor="#FFFFFF" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
 
-    <!-- pill capsule, right half -->
-    <path
-        android:pathData="M54,42 L70,42 A12,12 0 0,1 70,66 L54,66 Z"
-        android:fillColor="#EF5350" />
+        <!-- Mitad blanca -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,42 L40,42 A12,12 0 0,0 40,66 L54,66 Z" />
 
-    <!-- capsule outline -->
-    <path
-        android:pathData="M38,42 L70,42 A12,12 0 0,1 70,66 L38,66 A12,12 0 0,1 38,42 Z"
-        android:fillColor="#00000000"
-        android:strokeColor="#B71C1C"
-        android:strokeWidth="1.5" />
+        <!-- Mitad menta -->
+        <path
+            android:fillColor="#A8E6CF"
+            android:pathData="M54,42 L68,42 A12,12 0 0,1 68,66 L54,66 Z" />
+
+        <!-- Junta entre las dos mitades -->
+        <path
+            android:pathData="M54,42 L54,66"
+            android:strokeColor="@color/ic_launcher_background"
+            android:strokeWidth="1.5" />
+    </group>
 </vector>

@@ -1,0 +1,10 @@
+<!-- Icono maestro de TomaDiaria, en el sistema de coordenadas de un icono adaptativo (108x108).
+     ic_launcher_foreground.xml es su traducción a vector drawable; si se toca uno, se toca el otro. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <rect width="108" height="108" fill="#1F6F5C"/>
+  <g transform="rotate(-45 54 54)">
+    <path d="M54,42 L40,42 A12,12 0 0,0 40,66 L54,66 Z" fill="#FFFFFF"/>
+    <path d="M54,42 L68,42 A12,12 0 0,1 68,66 L54,66 Z" fill="#A8E6CF"/>
+    <path d="M54,42 L54,66" stroke="#1F6F5C" stroke-width="1.5"/>
+  </g>
+</svg>
