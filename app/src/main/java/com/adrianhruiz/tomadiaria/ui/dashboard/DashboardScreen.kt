@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Logout
@@ -50,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.adrianhruiz.tomadiaria.data.backup.BackupSerializer
 import com.adrianhruiz.tomadiaria.legal.PrivacyPolicy
+import com.adrianhruiz.tomadiaria.ui.account.DeleteAccountDialog
 import com.adrianhruiz.tomadiaria.ui.backup.BackupUiState
 import com.adrianhruiz.tomadiaria.ui.backup.BackupViewModel
 
@@ -62,6 +64,7 @@ fun DashboardScreen(
     onNavigateHistory: () -> Unit,
     onNavigateReminders: () -> Unit,
     onLogout: () -> Unit,
+    onAccountDeleted: () -> Unit,
     backupViewModel: BackupViewModel = viewModel(factory = BackupViewModel.Factory),
 ) {
     val context = LocalContext.current
@@ -80,6 +83,14 @@ fun DashboardScreen(
         if (source != null) backupViewModel.prepareImport(context.contentResolver, source)
     }
     val pendingImport by backupViewModel.pendingImport.collectAsStateWithLifecycle()
+    var showDeleteAccount by remember { mutableStateOf(false) }
+
+    if (showDeleteAccount) {
+        DeleteAccountDialog(
+            onDismiss = { showDeleteAccount = false },
+            onDeleted = onAccountDeleted,
+        )
+    }
 
     LaunchedEffect(backupState) {
         when (val state = backupState) {
@@ -162,6 +173,20 @@ fun DashboardScreen(
                             onClick = {
                                 menuExpanded = false
                                 uriHandler.openUri(PrivacyPolicy.URL)
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Eliminar mi cuenta", color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.DeleteForever,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                showDeleteAccount = true
                             },
                         )
                     }

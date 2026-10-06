@@ -39,6 +39,11 @@ class BackupFileStore(
         copies.dropLast(copiesKept).forEach { it.delete() }
     }
 
+    /** Borra todas las copias automáticas; se usa al eliminar la cuenta. */
+    fun deleteAll() {
+        File(parentDirectory ?: return, BACKUP_DIRECTORY).deleteRecursively()
+    }
+
     fun existingCopies(): List<File> {
         val directory = File(parentDirectory ?: return emptyList(), BACKUP_DIRECTORY)
         return directory.listFiles { file -> file.isFile && file.name.endsWith(".json") }

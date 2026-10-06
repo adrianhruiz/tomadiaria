@@ -59,6 +59,17 @@ TomaDiaria tiene **su propio proyecto Firebase**, separado del de MedicApp: los 
 usuarios reales no pueden mezclarse con los de uso personal. `app/google-services.json` no se
 versiona; la plantilla está en `app/google-services.json.example`.
 
+## Privacidad (RGPD y Google Play)
+
+- La política de privacidad y la página de borrado de cuenta están en `hosting/` y se publican
+  en `https://tomadiaria-app.web.app` con `firebase deploy --only hosting`.
+- Si la política cambia, se sube su versión **a la vez** en `hosting/privacidad/index.html` y en
+  `legal/PrivacyPolicy.kt`: esa versión es la que se guarda con el consentimiento de cada usuario.
+- **Si añades una colección nueva bajo `users/{uid}`, añádela a `FirebaseAccountRepository`.**
+  Firestore no borra las subcolecciones al borrar un documento, así que si no está en esa lista
+  sus datos sobrevivirían al "Eliminar mi cuenta". Lo mismo con cualquier dato nuevo que la app
+  guarde en el móvil: el borrado de cuenta tiene que limpiarlo.
+
 ## Firestore: filtrar en el servidor
 
 Regla aprendida a base de arreglarlo: **nunca leer una colección entera para responder algo
