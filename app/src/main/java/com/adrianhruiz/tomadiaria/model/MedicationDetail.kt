@@ -9,5 +9,4 @@ data class MedicationDetail(
     val requiereReceta: Boolean?,
     val fotoUrl: String?,
     val principiosActivos: List<PrincipioActivo>,
-    val atcs: List<AtcCode>,
 )

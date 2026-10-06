@@ -10,13 +10,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.adrianhruiz.tomadiaria.model.AllergyType
 import com.adrianhruiz.tomadiaria.model.MedicationDetail
 import com.adrianhruiz.tomadiaria.ui.components.AddedChip
 import com.adrianhruiz.tomadiaria.ui.components.MedicationThumbnail
@@ -97,90 +92,26 @@ fun MedicationDetailScreen(
                         )
                     }
 
-                    if (uiState.matches.isNotEmpty()) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    "Desrecomendado",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                                uiState.matches.forEach {
-                                    Text(
-                                        "• ${it.descripcion}",
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Text(
-                        "Componentes activos",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 24.dp, bottom = 4.dp),
-                    )
-                    Text(
-                        "Toca un componente para marcar o quitar la alergia",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                    medication.principiosActivos.forEach { principioActivo ->
-                        val isAllergic = uiState.allergies.any {
-                            it.tipo == AllergyType.PRINCIPIO_ACTIVO && it.principioActivoId == principioActivo.id
-                        }
-                        FilterChip(
-                            selected = isAllergic,
-                            onClick = { viewModel.toggleIngredientAllergy(principioActivo) },
-                            label = { Text(principioActivo.nombre) },
-                            leadingIcon = if (isAllergic) {
-                                { Icon(Icons.Default.Warning, contentDescription = null) }
-                            } else {
-                                null
-                            },
-                            modifier = Modifier.padding(vertical = 4.dp),
+                    if (medication.principiosActivos.isNotEmpty()) {
+                        Text(
+                            "Componentes activos",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 24.dp, bottom = 4.dp),
                         )
-                    }
-
-                    Text(
-                        "Familias (código ATC)",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
-                    )
-                    medication.atcs.forEach { atc ->
-                        val isAllergic = uiState.allergies.any {
-                            it.tipo == AllergyType.FAMILIA && it.atcCodigo == atc.codigo
+                        medication.principiosActivos.forEach { principioActivo ->
+                            Text(
+                                principioActivo.nombre,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                            )
                         }
-                        FilterChip(
-                            selected = isAllergic,
-                            onClick = { viewModel.toggleFamiliaAllergy(atc) },
-                            label = { Text("${atc.nombre} (${atc.codigo})") },
-                            leadingIcon = if (isAllergic) {
-                                { Icon(Icons.Default.Warning, contentDescription = null) }
-                            } else {
-                                null
-                            },
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
                     }
 
                     Button(
                         onClick = { onAddToHistory(medication) },
-                        enabled = uiState.canAddToHistory,
                         modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                     ) {
                         Text("Añadir al historial")
-                    }
-                    if (!uiState.canAddToHistory) {
-                        Text(
-                            "No puedes añadirlo al historial: está desrecomendado por tus alergias.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        )
                     }
                     OutlinedButton(
                         onClick = { onCreateReminder(medication) },

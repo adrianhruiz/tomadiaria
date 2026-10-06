@@ -27,7 +27,7 @@ class DoseScheduleCalculatorTest {
     }
 
     @Test
-    fun `once a day for five days matches the dosing example from the allergy record`() {
+    fun `once a day for five days spaces the doses 24 hours apart`() {
         val times = DoseScheduleCalculator.computeDoseTimes(startAtMillis = 0L, intervalHours = 24, totalDoses = 5)
 
         assertEquals(5, times.size)

@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** Distintivo para lo que el usuario ya tiene añadido: historial, recordatorios, alergias. */
+/** Distintivo para lo que el usuario ya tiene añadido: historial y recordatorios. */
 @Composable
 fun AddedChip(
     text: String,

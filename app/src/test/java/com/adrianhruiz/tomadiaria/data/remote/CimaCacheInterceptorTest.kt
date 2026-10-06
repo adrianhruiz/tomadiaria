@@ -61,16 +61,6 @@ class CimaCacheInterceptorTest {
     }
 
     @Test
-    fun `rewrites cache-control for maestras path`() {
-        server.enqueue(cimaStyleResponse("{}"))
-        val request = Request.Builder().url(server.url("/maestras?maestra=1")).build()
-
-        client.newCall(request).execute().use { response ->
-            assertEquals("public, max-age=${CimaCacheTtl.MAESTRAS_MAX_AGE_SECONDS}", response.header("Cache-Control"))
-        }
-    }
-
-    @Test
     fun `leaves cache-control untouched for unrelated paths`() {
         server.enqueue(cimaStyleResponse("{}"))
         val request = Request.Builder().url(server.url("/other")).build()

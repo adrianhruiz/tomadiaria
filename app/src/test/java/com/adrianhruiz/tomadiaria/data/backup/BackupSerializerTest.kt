@@ -8,9 +8,6 @@ class BackupSerializerTest {
 
     private fun sample() = BackupFile(
         exportedAtMillis = 1_700_000_000_000L,
-        allergies = listOf(
-            BackupAllergy(id = "a1", tipo = "PRINCIPIO_ACTIVO", principioActivoId = 7, principioActivoNombre = "IBUPROFENO"),
-        ),
         reasons = listOf(BackupReason(id = "r1", nombre = "Dolor de espalda")),
         takenMedications = listOf(
             BackupTakenEntry(
@@ -53,8 +50,8 @@ class BackupSerializerTest {
 
     @Test
     fun `counts every record including the doses inside each schedule`() {
-        // 1 alergia + 1 motivo + 1 toma + 1 pauta + 2 dosis
-        assertEquals(6, sample().totalItems)
+        // 1 motivo + 1 toma + 1 pauta + 2 dosis
+        assertEquals(5, sample().totalItems)
     }
 
     @Test
@@ -76,6 +73,23 @@ class BackupSerializerTest {
 
         val restored = BackupSerializer.decode(text)
 
+        assertEquals("Dolor", restored.reasons.single().nombre)
+    }
+
+    @Test
+    fun `reads a MedicApp backup and leaves its allergies out`() {
+        val text = """
+            {
+              "version": 1,
+              "exportedAtMillis": 1700000000000,
+              "allergies": [{"id": "a1", "tipo": "PRINCIPIO_ACTIVO", "principioActivoId": 7}],
+              "reasons": [{"id": "r1", "nombre": "Dolor"}]
+            }
+        """.trimIndent()
+
+        val restored = BackupSerializer.decode(text)
+
+        assertEquals(1, restored.totalItems)
         assertEquals("Dolor", restored.reasons.single().nombre)
     }
 

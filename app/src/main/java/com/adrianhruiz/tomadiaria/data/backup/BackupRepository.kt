@@ -40,7 +40,6 @@ class FirestoreBackupRepository(
         val user = userDocument()
         return BackupFile(
             exportedAtMillis = nowMillis(),
-            allergies = user.collection("allergies").get().await().documents.map { it.toBackupAllergy() },
             reasons = user.collection("reasons").get().await().documents.map { it.toBackupReason() },
             takenMedications = user.collection("takenMedications").get().await()
                 .documents.map { it.toBackupTakenEntry() },
@@ -59,7 +58,6 @@ class FirestoreBackupRepository(
         val plan = ImportPlanner.plan(backup, readExistingIds(backup))
 
         val writes = buildList {
-            plan.allergies.forEach { add(user.collection("allergies").document(it.id) to it.toFirestore()) }
             plan.reasons.forEach { add(user.collection("reasons").document(it.id) to it.toFirestore()) }
             plan.takenMedications.forEach {
                 add(user.collection("takenMedications").document(it.id) to it.toFirestore())
@@ -105,7 +103,6 @@ class FirestoreBackupRepository(
             }
 
         return ImportPlanner.Existing(
-            allergyIds = idsIn("allergies"),
             reasonIds = idsIn("reasons"),
             takenMedicationIds = idsIn("takenMedications"),
             scheduleIds = scheduleIds,
@@ -117,15 +114,6 @@ class FirestoreBackupRepository(
 private const val FIRESTORE_BATCH_LIMIT = 500
 
 private fun Long?.asTimestamp(): Timestamp? = this?.let { Timestamp(Date(it)) }
-
-private fun BackupAllergy.toFirestore() = mapOf(
-    "tipo" to tipo,
-    "principioActivoId" to principioActivoId,
-    "principioActivoNombre" to principioActivoNombre,
-    "atcCodigo" to atcCodigo,
-    "atcNombre" to atcNombre,
-    "createdAt" to createdAtMillis.asTimestamp(),
-)
 
 private fun BackupReason.toFirestore() = mapOf(
     "nombre" to nombre,
@@ -164,16 +152,6 @@ private fun BackupDose.toFirestore() = mapOf(
 )
 
 private fun DocumentSnapshot.millis(field: String): Long? = getTimestamp(field)?.toDate()?.time
-
-private fun DocumentSnapshot.toBackupAllergy() = BackupAllergy(
-    id = id,
-    tipo = getString("tipo").orEmpty(),
-    principioActivoId = getLong("principioActivoId")?.toInt(),
-    principioActivoNombre = getString("principioActivoNombre"),
-    atcCodigo = getString("atcCodigo"),
-    atcNombre = getString("atcNombre"),
-    createdAtMillis = millis("createdAt"),
-)
 
 private fun DocumentSnapshot.toBackupReason() = BackupReason(
     id = id,

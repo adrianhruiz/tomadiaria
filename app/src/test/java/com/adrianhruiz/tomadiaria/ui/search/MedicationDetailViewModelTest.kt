@@ -2,14 +2,10 @@ package com.adrianhruiz.tomadiaria.ui.search
 
 import androidx.lifecycle.SavedStateHandle
 import com.adrianhruiz.tomadiaria.data.remote.FakeCimaApiService
-import com.adrianhruiz.tomadiaria.data.remote.dto.AtcDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentoDetailDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.PrincipioActivoDto
-import com.adrianhruiz.tomadiaria.data.repository.FakeAllergyRepository
 import com.adrianhruiz.tomadiaria.data.repository.FakeMedicationHistoryRepository
 import com.adrianhruiz.tomadiaria.data.repository.MedicationCatalogRepository
-import com.adrianhruiz.tomadiaria.model.Allergy
-import com.adrianhruiz.tomadiaria.model.AllergyType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -33,7 +29,6 @@ class MedicationDetailViewModelTest {
         nregistro = "77758",
         nombre = "PARACETAMOL ABAMED 1G",
         principiosActivos = listOf(PrincipioActivoDto(id = 745, nombre = "PARACETAMOL")),
-        atcs = listOf(AtcDto(codigo = "N02BE01", nombre = "Paracetamol")),
     )
 
     @Before
@@ -47,102 +42,21 @@ class MedicationDetailViewModelTest {
     }
 
     private fun createViewModel(
-        allergyRepository: FakeAllergyRepository,
         historyRepository: FakeMedicationHistoryRepository = FakeMedicationHistoryRepository(),
     ) = MedicationDetailViewModel(
         MedicationCatalogRepository(FakeCimaApiService(medicamentoDetailResponse = detailDto)),
-        allergyRepository,
         historyRepository,
         SavedStateHandle(mapOf("nregistro" to "77758")),
     )
 
     @Test
-    fun `loads the medication detail and starts with no allergy matches`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
+    fun `loads the medication detail with its active ingredients`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
-        val state = viewModel.uiState.value
-        assertEquals("PARACETAMOL ABAMED 1G", state.medication?.nombre)
-        assertTrue(state.matches.isEmpty())
-    }
-
-    @Test
-    fun `toggling a matching ingredient allergy surfaces a warning`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
-        advanceUntilIdle()
-
-        viewModel.toggleIngredientAllergy(viewModel.uiState.value.medication!!.principiosActivos.first())
-        advanceUntilIdle()
-
-        assertEquals(1, viewModel.uiState.value.matches.size)
-    }
-
-    @Test
-    fun `toggling the same ingredient allergy twice removes the warning again`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
-        advanceUntilIdle()
-        val ingredient = viewModel.uiState.value.medication!!.principiosActivos.first()
-
-        viewModel.toggleIngredientAllergy(ingredient)
-        advanceUntilIdle()
-        viewModel.toggleIngredientAllergy(ingredient)
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.matches.isEmpty())
-    }
-
-    @Test
-    fun `a medication without allergy matches can be added to the history`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.canAddToHistory)
-    }
-
-    @Test
-    fun `a medication matching an ingredient allergy cannot be added to the history`() = runTest(dispatcher) {
-        val viewModel = createViewModel(
-            FakeAllergyRepository(
-                listOf(
-                    Allergy(
-                        id = "1",
-                        tipo = AllergyType.PRINCIPIO_ACTIVO,
-                        principioActivoId = 745,
-                        principioActivoNombre = "PARACETAMOL",
-                    ),
-                ),
-            ),
-        )
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.canAddToHistory)
-    }
-
-    @Test
-    fun `a medication matching a family allergy cannot be added to the history`() = runTest(dispatcher) {
-        val viewModel = createViewModel(
-            FakeAllergyRepository(
-                listOf(Allergy(id = "1", tipo = AllergyType.FAMILIA, atcCodigo = "N02B", atcNombre = "Analgésicos")),
-            ),
-        )
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.canAddToHistory)
-    }
-
-    @Test
-    fun `removing the allergy re-enables adding the medication to the history`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
-        advanceUntilIdle()
-        val ingredient = viewModel.uiState.value.medication!!.principiosActivos.first()
-
-        viewModel.toggleIngredientAllergy(ingredient)
-        advanceUntilIdle()
-        assertFalse(viewModel.uiState.value.canAddToHistory)
-
-        viewModel.toggleIngredientAllergy(ingredient)
-        advanceUntilIdle()
-        assertTrue(viewModel.uiState.value.canAddToHistory)
+        val medication = viewModel.uiState.value.medication
+        assertEquals("PARACETAMOL ABAMED 1G", medication?.nombre)
+        assertEquals(listOf("PARACETAMOL"), medication?.principiosActivos?.map { it.nombre })
     }
 
     @Test
@@ -156,7 +70,7 @@ class MedicationDetailViewModelTest {
             dosisSnapshot = null,
             fotoUrl = null,
         )
-        val viewModel = createViewModel(FakeAllergyRepository(), historyRepository)
+        val viewModel = createViewModel(historyRepository)
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isInHistory)
@@ -165,7 +79,7 @@ class MedicationDetailViewModelTest {
 
     @Test
     fun `a medication that is not in the history is not flagged`() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeAllergyRepository())
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isInHistory)
@@ -182,22 +96,9 @@ class MedicationDetailViewModelTest {
             dosisSnapshot = null,
             fotoUrl = null,
         )
-        val viewModel = createViewModel(FakeAllergyRepository(), historyRepository)
+        val viewModel = createViewModel(historyRepository)
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isInHistory)
-    }
-
-    @Test
-    fun `a pre-existing family allergy already shows a warning on load`() = runTest(dispatcher) {
-        val allergyRepository = FakeAllergyRepository()
-        val viewModel = createViewModel(allergyRepository)
-        advanceUntilIdle()
-
-        viewModel.toggleFamiliaAllergy(viewModel.uiState.value.medication!!.atcs.first())
-        advanceUntilIdle()
-
-        assertEquals(1, viewModel.uiState.value.matches.size)
-        assertEquals(1, allergyRepository.allergies.size)
     }
 }

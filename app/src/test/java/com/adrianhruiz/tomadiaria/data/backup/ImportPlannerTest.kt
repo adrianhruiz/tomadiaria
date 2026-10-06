@@ -26,12 +26,10 @@ class ImportPlannerTest {
     private fun backup(
         reasons: List<BackupReason> = emptyList(),
         schedules: List<BackupSchedule> = emptyList(),
-        allergies: List<BackupAllergy> = emptyList(),
     ) = BackupFile(
         exportedAtMillis = 0L,
         reasons = reasons,
         schedules = schedules,
-        allergies = allergies,
     )
 
     @Test
@@ -59,11 +57,9 @@ class ImportPlannerTest {
         val file = backup(
             reasons = listOf(reason("r1")),
             schedules = listOf(schedule("s1", listOf(dose("d1"), dose("d2")))),
-            allergies = listOf(BackupAllergy(id = "a1", tipo = "PRINCIPIO_ACTIVO")),
         )
 
         val afterFirstImport = ImportPlanner.Existing(
-            allergyIds = setOf("a1"),
             reasonIds = setOf("r1"),
             scheduleIds = setOf("s1"),
             doseIdsBySchedule = mapOf("s1" to setOf("d1", "d2")),
