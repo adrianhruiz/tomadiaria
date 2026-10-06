@@ -62,4 +62,15 @@ class BackupFileStoreTest {
     fun `reports no copies when nothing has been written yet`() {
         assertTrue(BackupFileStore(tempFolder.newFolder()).existingCopies().isEmpty())
     }
+
+    @Test
+    fun `deleteAll removes every automatic copy`() {
+        val store = BackupFileStore(tempFolder.newFolder())
+        store.write("tomadiaria-copia-2026-07-01.json", "uno")
+        store.write("tomadiaria-copia-2026-07-02.json", "dos")
+
+        store.deleteAll()
+
+        assertEquals(emptyList<String>(), store.existingCopies().map { it.name })
+    }
 }

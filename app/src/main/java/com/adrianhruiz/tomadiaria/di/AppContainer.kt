@@ -5,7 +5,9 @@ import com.adrianhruiz.tomadiaria.data.backup.BackupRepository
 import com.adrianhruiz.tomadiaria.data.backup.FirestoreBackupRepository
 import com.adrianhruiz.tomadiaria.data.remote.NetworkModule
 import com.adrianhruiz.tomadiaria.data.remote.firebase.FirebaseModule
+import com.adrianhruiz.tomadiaria.data.repository.AccountRepository
 import com.adrianhruiz.tomadiaria.data.repository.AuthRepository
+import com.adrianhruiz.tomadiaria.data.repository.FirebaseAccountRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirebaseAuthRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirestoreMedicationHistoryRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirestoreReasonRepository
@@ -31,6 +33,9 @@ class AppContainer(context: Context) {
 
     val authRepository: AuthRepository =
         FirebaseAuthRepository(FirebaseModule.auth, FirebaseModule.firestore)
+
+    val accountRepository: AccountRepository =
+        FirebaseAccountRepository(FirebaseModule.auth, FirebaseModule.firestore)
 
     val medicationSearchRepository: MedicationSearchRepository =
         MedicationSearchRepository(networkModule.cimaApiService)

@@ -156,6 +156,8 @@ private fun MainNavHost(startDestination: String, initialScheduleId: String?, on
                         onSignOut()
                         navController.navigate(ROUTE_LOGIN) { popUpTo(0) }
                     },
+                    // Firebase cierra la sesión al borrar la cuenta; solo queda volver al login.
+                    onAccountDeleted = { navController.navigate(ROUTE_LOGIN) { popUpTo(0) } },
                 )
             }
             composable(ROUTE_SEARCH) {
