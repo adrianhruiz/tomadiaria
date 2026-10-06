@@ -1,12 +1,41 @@
-# MedicApp
+# TomaDiaria
 
-App Android nativa (Kotlin + Compose) para consultar medicamentos de la API pública de CIMA
-(AEMPS), registrar cuáles se han tomado, marcar alergias y programar recordatorios de toma.
-Los datos del usuario viven en Firebase (Auth + Firestore).
+Pastillero digital para Android (Kotlin + Compose): el usuario busca sus medicamentos en la API
+pública de CIMA (AEMPS), programa recordatorios de toma, confirma cada toma y lleva su
+historial. Los datos del usuario viven en Firebase (Auth + Firestore).
+
+Es un fork de MedicApp, que además recomendaba o desrecomendaba medicamentos según las
+alergias del usuario. Aquí eso se ha quitado a propósito: ver "Sin zona gris médica".
+
+## Sin zona gris médica
+
+La app se va a publicar, y un software que da información para tomar decisiones terapéuticas
+sobre un paciente es un producto sanitario (MDR 2017/745, regla 11). TomaDiaria tiene que
+quedarse **fuera** de esa categoría, así que la regla es:
+
+Una funcionalidad es válida si solo hace estas tres cosas:
+
+1. **Guarda** lo que el usuario escribe, tal cual.
+2. **Muestra** información oficial sin tocarla, identificada por el número de registro o el
+   código nacional exactos.
+3. **Avisa** a las horas que el usuario ha elegido.
+
+Queda fuera todo lo que **cruce datos de salud del usuario con conocimiento sobre fármacos
+para sacar una conclusión**, aunque parezca inofensivo:
+
+- Alergias, contraindicaciones o advertencias por perfil (embarazo, edad, alcohol...).
+- Interacciones o duplicidades ("ya tomas otro con paracetamol").
+- Dosis máximas, "has tomado demasiado" o qué hacer si se olvida una dosis.
+- Rellenar una pauta con la posología de la ficha técnica.
+- Sugerir medicamentos a partir del motivo o de un síntoma.
+- Interpretar la adherencia ("tu tratamiento puede no funcionar").
+- Textos que prometan juicio clínico ("recomendable para ti").
+
+Si una propuesta toca cualquiera de estos puntos, no se implementa: se avisa y se pregunta.
 
 ## Flujo de trabajo
 
-El repo usa **git flow**, ya inicializado (`main` / `develop`, prefijo `feature/`).
+El repo usa **git flow** (`main` / `develop`, prefijo `feature/`).
 
 Toda mejora empieza con su propia rama, nunca commiteando directo en `develop`:
 
@@ -15,20 +44,20 @@ git flow feature start <nombre-descriptivo>
 git flow feature finish <nombre-descriptivo>
 ```
 
-**Una rama por asunto.** Si un trabajo mezcla cosas sin relación (una optimización de
-consultas y utillaje del repo, por ejemplo), van separadas para poder revisarlas y
-revertirlas por su cuenta.
+Donde no esté instalado `git flow`, el equivalente es crear `feature/<nombre>` desde `develop`
+y al terminar fusionarla con `git merge --no-ff`.
+
+**Una rama por asunto.** Si un trabajo mezcla cosas sin relación, van separadas para poder
+revisarlas y revertirlas por su cuenta.
 
 Mensajes de commit **en español**, en imperativo, explicando **por qué** se hace el cambio y
 no solo qué se toca. Los comentarios y el KDoc del código, también en español.
 
-## Distribución: solo debug
+## Firebase
 
-La app es de uso personal y **no se publica**. Se instala la variante debug (`build-apk.ps1`
-o `installDebug`). No hay configuración de firma para release.
-
-No propongas activar R8, crear un keystore ni preparar la subida a Play salvo que se pida
-expresamente: no aplica a este proyecto.
+TomaDiaria tiene **su propio proyecto Firebase**, separado del de MedicApp: los datos de
+usuarios reales no pueden mezclarse con los de uso personal. `app/google-services.json` no se
+versiona; la plantilla está en `app/google-services.json.example`.
 
 ## Firestore: filtrar en el servidor
 
@@ -44,7 +73,7 @@ Antes de añadir un método al repositorio, mira si ya existe uno acotado que si
 ## Estructura
 
 - Sin framework de inyección: las dependencias se montan a mano en `di/AppContainer`, que
-  cuelga de `MedicApp`.
+  cuelga de `TomaDiariaApp`.
 - Los repositorios exponen `Flow`; los ViewModels los pasan a `StateFlow` con
   `stateIn(..., WhileSubscribed(5000), ...)`.
 - Interfaz de repositorio + implementación Firestore + doble de test en `src/sharedTest`,
@@ -58,7 +87,7 @@ Antes de añadir un método al repositorio, mira si ya existe uno acotado que si
 ```
 
 Para verificarlo en la app de verdad y no solo con tests, hay un skill del proyecto con la
-receta del emulador: `.claude/skills/run-medicapp/`.
+receta del emulador: `.claude/skills/run-tomadiaria/`.
 
 ## Fallo conocido
 

@@ -1,0 +1,251 @@
+package com.adrianhruiz.tomadiaria.ui.search
+
+import com.adrianhruiz.tomadiaria.data.remote.FakeCimaApiService
+import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentoDto
+import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentosResponseDto
+import com.adrianhruiz.tomadiaria.data.repository.FakeMedicationHistoryRepository
+import com.adrianhruiz.tomadiaria.data.repository.FakeScheduleRepository
+import com.adrianhruiz.tomadiaria.data.repository.MedicationSearchRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class SearchViewModelTest {
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `starts in Idle state before typing anything`() = runTest(dispatcher) {
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService()),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+
+        assertEquals(SearchUiState.Idle, viewModel.uiState.value)
+    }
+
+    @Test
+    fun `typing a query shows the results once the debounce elapses`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        val state = viewModel.uiState.value
+        assertTrue(state is SearchUiState.Success)
+        assertEquals("XAZAL", (state as SearchUiState.Success).results.single().nombre)
+        collectorJob.cancel()
+    }
+
+    @Test
+    fun `no results are reported as Empty state`() = runTest(dispatcher) {
+        val response = MedicamentosResponseDto(totalFilas = 0, pagina = 1, tamanioPagina = 25, resultados = emptyList())
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+
+        viewModel.onQueryChanged("noexiste")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertEquals(SearchUiState.Empty, viewModel.uiState.value)
+        collectorJob.cancel()
+    }
+
+    @Test
+    fun `clearing the query back to blank returns to Idle`() = runTest(dispatcher) {
+        val response = MedicamentosResponseDto(totalFilas = 0, pagina = 1, tamanioPagina = 25, resultados = emptyList())
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+        viewModel.onQueryChanged("")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertEquals(SearchUiState.Idle, viewModel.uiState.value)
+        collectorJob.cancel()
+    }
+
+    @Test
+    fun `medications with an active schedule are marked as saved in the results`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val scheduleRepository = FakeScheduleRepository()
+        scheduleRepository.createSchedule(
+            nregistro = "1",
+            nombreMedicamento = "XAZAL",
+            fotoUrl = null,
+            intervalHours = 24,
+            totalDoses = 1,
+            startAtMillis = 0L,
+            reasonId = "r1",
+            reasonNombre = "Alergia",
+        )
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            scheduleRepository,
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+        val savedJob = launch { viewModel.savedNregistros.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value is SearchUiState.Success)
+        assertTrue(viewModel.savedNregistros.value.contains("1"))
+        collectorJob.cancel()
+        savedJob.cancel()
+    }
+
+    @Test
+    fun `medications without any schedule are not marked as saved`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+        val savedJob = launch { viewModel.savedNregistros.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value is SearchUiState.Success)
+        assertTrue(viewModel.savedNregistros.value.isEmpty())
+        collectorJob.cancel()
+        savedJob.cancel()
+    }
+
+    @Test
+    fun `medications already in the history are flagged in the results`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val historyRepository = FakeMedicationHistoryRepository()
+        historyRepository.add(
+            nregistro = "1",
+            nombreMedicamento = "XAZAL",
+            reasonId = "r1",
+            reasonNombre = "Alergia",
+            dosisSnapshot = null,
+            fotoUrl = null,
+        )
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            historyRepository,
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+        val historyJob = launch { viewModel.historyNregistros.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value is SearchUiState.Success)
+        assertTrue(viewModel.historyNregistros.value.contains("1"))
+        collectorJob.cancel()
+        historyJob.cancel()
+    }
+
+    @Test
+    fun `medications not in the history are not flagged`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            FakeScheduleRepository(),
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+        val historyJob = launch { viewModel.historyNregistros.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value is SearchUiState.Success)
+        assertTrue(viewModel.historyNregistros.value.isEmpty())
+        collectorJob.cancel()
+        historyJob.cancel()
+    }
+
+    @Test
+    fun `medications with only a closed schedule are not marked as saved`() = runTest(dispatcher) {
+        val dto = MedicamentoDto(nregistro = "1", nombre = "XAZAL")
+        val response = MedicamentosResponseDto(totalFilas = 1, pagina = 1, tamanioPagina = 25, resultados = listOf(dto))
+        val scheduleRepository = FakeScheduleRepository()
+        val created = scheduleRepository.createSchedule(
+            nregistro = "1",
+            nombreMedicamento = "XAZAL",
+            fotoUrl = null,
+            intervalHours = 24,
+            totalDoses = 1,
+            startAtMillis = 0L,
+            reasonId = "r1",
+            reasonNombre = "Alergia",
+        )
+        scheduleRepository.closeSchedule(created.schedule.id)
+        val viewModel = SearchViewModel(
+            MedicationSearchRepository(FakeCimaApiService(medicamentosResponse = response)),
+            scheduleRepository,
+            FakeMedicationHistoryRepository(),
+        )
+        val collectorJob = launch { viewModel.uiState.collect {} }
+        val savedJob = launch { viewModel.savedNregistros.collect {} }
+
+        viewModel.onQueryChanged("xazal")
+        advanceTimeBy(400)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value is SearchUiState.Success)
+        assertTrue(viewModel.savedNregistros.value.isEmpty())
+        collectorJob.cancel()
+        savedJob.cancel()
+    }
+}
