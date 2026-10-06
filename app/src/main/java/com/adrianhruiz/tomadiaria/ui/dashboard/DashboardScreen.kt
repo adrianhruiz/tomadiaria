@@ -171,7 +171,7 @@ fun DashboardScreen(
         ) {
             DashboardCard(
                 title = "Búsqueda",
-                description = "Busca medicamentos y consulta si son recomendables para ti",
+                description = "Busca tus medicamentos para añadirlos a tu pastillero",
                 icon = Icons.Default.Search,
                 onClick = onNavigateSearch,
             )
@@ -186,6 +186,12 @@ fun DashboardScreen(
                 description = "Programa avisos de toma y gestiona tus periodos activos",
                 icon = Icons.Default.Notifications,
                 onClick = onNavigateReminders,
+            )
+            Text(
+                "TomaDiaria te ayuda a recordar y apuntar tus tomas. No es un producto sanitario " +
+                    "ni sustituye el consejo de tu médico o farmacéutico.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

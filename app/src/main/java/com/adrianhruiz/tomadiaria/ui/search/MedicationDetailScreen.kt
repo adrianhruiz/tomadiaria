@@ -119,6 +119,13 @@ fun MedicationDetailScreen(
                     ) {
                         Text("Crear recordatorio")
                     }
+                    // La reutilización de los datos de CIMA exige citar la fuente.
+                    Text(
+                        "Fuente: CIMA, Agencia Española de Medicamentos y Productos Sanitarios (AEMPS)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                    )
                 }
             }
         }

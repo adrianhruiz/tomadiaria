@@ -156,7 +156,7 @@ fun CreateScheduleScreen(
         OutlinedTextField(
             value = uiState.reasonInput,
             onValueChange = viewModel::onReasonInputChanged,
-            label = { Text("Motivo (ej. alergia estacional)") },
+            label = { Text("Motivo (ej. pauta de tu médico)") },
             modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
             singleLine = true,
         )
