@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.medicapp"
+    namespace = "com.adrianhruiz.tomadiaria"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.medicapp"
+        applicationId = "com.adrianhruiz.tomadiaria"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
