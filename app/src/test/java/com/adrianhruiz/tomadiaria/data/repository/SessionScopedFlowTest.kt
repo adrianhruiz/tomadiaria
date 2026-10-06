@@ -18,7 +18,7 @@ class SessionScopedFlowTest {
     private val auth = object : AuthRepository {
         override val currentUserId: String? get() = session.value
         override val authStateUserId = session
-        override suspend fun signUp(email: String, password: String) = Unit
+        override suspend fun signUp(email: String, password: String, privacyPolicyVersion: String) = Unit
         override suspend fun signIn(email: String, password: String) = Unit
         override fun signOut() {
             session.value = null

@@ -2,6 +2,7 @@ package com.adrianhruiz.tomadiaria.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -16,11 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.adrianhruiz.tomadiaria.legal.PrivacyPolicy
 
 @Composable
 fun RegisterScreen(
@@ -29,6 +34,7 @@ fun RegisterScreen(
     viewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
 
     Column(
         modifier = Modifier
@@ -58,6 +64,25 @@ fun RegisterScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        // Consentimiento explícito para datos de salud (art. 9.2.a RGPD): casilla sin marcar de
+        // serie y que el usuario tiene que marcar él mismo.
+        Row(verticalAlignment = Alignment.Top) {
+            Checkbox(
+                checked = uiState.acceptedPrivacyPolicy,
+                onCheckedChange = viewModel::onPrivacyPolicyAcceptedChanged,
+            )
+            Text(
+                "He leído la política de privacidad y doy mi consentimiento expreso para que " +
+                    "TomaDiaria guarde los medicamentos, recordatorios y tomas que registre, que " +
+                    "son datos de salud.",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
+        TextButton(onClick = { uriHandler.openUri(PrivacyPolicy.URL) }) {
+            Text("Leer la política de privacidad")
+        }
         uiState.errorMessage?.let {
             Text(
                 it,
@@ -68,7 +93,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = { viewModel.signUp(onRegistered) },
-            enabled = !uiState.isLoading,
+            enabled = !uiState.isLoading && uiState.acceptedPrivacyPolicy,
             modifier = Modifier.fillMaxWidth(),
         ) {
             if (uiState.isLoading) {

@@ -8,7 +8,11 @@ interface AuthRepository {
 
     val authStateUserId: Flow<String?>
 
-    suspend fun signUp(email: String, password: String)
+    /**
+     * Crea la cuenta y guarda junto a ella qué versión de la política de privacidad aceptó el
+     * usuario y cuándo: el consentimiento para tratar datos de salud tiene que poder demostrarse.
+     */
+    suspend fun signUp(email: String, password: String, privacyPolicyVersion: String)
 
     suspend fun signIn(email: String, password: String)
 
