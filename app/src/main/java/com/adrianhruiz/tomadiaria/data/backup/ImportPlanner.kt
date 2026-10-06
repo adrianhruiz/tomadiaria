@@ -10,7 +10,6 @@ object ImportPlanner {
 
     /** Identificadores que ya hay en la cuenta. */
     data class Existing(
-        val allergyIds: Set<String> = emptySet(),
         val reasonIds: Set<String> = emptySet(),
         val takenMedicationIds: Set<String> = emptySet(),
         val scheduleIds: Set<String> = emptySet(),
@@ -18,7 +17,6 @@ object ImportPlanner {
     )
 
     data class Plan(
-        val allergies: List<BackupAllergy> = emptyList(),
         val reasons: List<BackupReason> = emptyList(),
         val takenMedications: List<BackupTakenEntry> = emptyList(),
         val schedules: List<BackupSchedule> = emptyList(),
@@ -27,11 +25,10 @@ object ImportPlanner {
         val skipped: Int = 0,
     ) {
         val added: Int
-            get() = allergies.size + reasons.size + takenMedications.size + schedules.size + doses.size
+            get() = reasons.size + takenMedications.size + schedules.size + doses.size
     }
 
     fun plan(backup: BackupFile, existing: Existing): Plan {
-        val allergies = backup.allergies.filterNot { it.id in existing.allergyIds }
         val reasons = backup.reasons.filterNot { it.id in existing.reasonIds }
         val takenMedications = backup.takenMedications.filterNot { it.id in existing.takenMedicationIds }
         val schedules = backup.schedules.filterNot { it.id in existing.scheduleIds }
@@ -44,7 +41,6 @@ object ImportPlanner {
         }
 
         val plan = Plan(
-            allergies = allergies,
             reasons = reasons,
             takenMedications = takenMedications,
             schedules = schedules,

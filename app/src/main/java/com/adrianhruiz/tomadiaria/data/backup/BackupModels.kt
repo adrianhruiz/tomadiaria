@@ -17,31 +17,21 @@ const val BACKUP_FORMAT_VERSION = 1
  * Los identificadores originales se conservan porque hay referencias entre colecciones: una
  * pauta apunta a su motivo y una toma apunta a su entrada de historial. Regenerarlos al
  * restaurar rompería esos vínculos.
+ *
+ * Las copias hechas con MedicApp traen además una lista `allergies`. TomaDiaria no guarda
+ * alergias a propósito (ver CLAUDE.md), así que al leerlas ese campo se ignora sin más.
  */
 @Serializable
 data class BackupFile(
     val version: Int = BACKUP_FORMAT_VERSION,
     val exportedAtMillis: Long,
-    val allergies: List<BackupAllergy> = emptyList(),
     val reasons: List<BackupReason> = emptyList(),
     val takenMedications: List<BackupTakenEntry> = emptyList(),
     val schedules: List<BackupSchedule> = emptyList(),
 ) {
     val totalItems: Int
-        get() = allergies.size + reasons.size + takenMedications.size +
-            schedules.size + schedules.sumOf { it.doses.size }
+        get() = reasons.size + takenMedications.size + schedules.size + schedules.sumOf { it.doses.size }
 }
-
-@Serializable
-data class BackupAllergy(
-    val id: String,
-    val tipo: String,
-    val principioActivoId: Int? = null,
-    val principioActivoNombre: String? = null,
-    val atcCodigo: String? = null,
-    val atcNombre: String? = null,
-    val createdAtMillis: Long? = null,
-)
 
 @Serializable
 data class BackupReason(

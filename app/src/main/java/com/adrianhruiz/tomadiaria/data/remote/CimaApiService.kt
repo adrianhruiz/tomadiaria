@@ -1,6 +1,5 @@
 package com.adrianhruiz.tomadiaria.data.remote
 
-import com.adrianhruiz.tomadiaria.data.remote.dto.MaestrasResponseDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentoDetailDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentosResponseDto
 import retrofit2.Response
@@ -23,11 +22,4 @@ interface CimaApiService {
     suspend fun obtenerMedicamento(
         @Query("nregistro") nregistro: String,
     ): MedicamentoDetailDto
-
-    /** Devuelve la respuesta completa por lo mismo que [buscarMedicamentos]. */
-    @GET("maestras")
-    suspend fun obtenerMaestra(
-        @Query("maestra") maestra: Int,
-        @Query("nombre") nombre: String? = null,
-    ): Response<MaestrasResponseDto>
 }

@@ -8,16 +8,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.adrianhruiz.tomadiaria.TomaDiariaApp
-import com.adrianhruiz.tomadiaria.data.repository.AllergyRepository
 import com.adrianhruiz.tomadiaria.data.repository.MedicationCatalogRepository
 import com.adrianhruiz.tomadiaria.data.repository.MedicationHistoryRepository
-import com.adrianhruiz.tomadiaria.domain.AllergyChecker
-import com.adrianhruiz.tomadiaria.model.Allergy
-import com.adrianhruiz.tomadiaria.model.AllergyMatch
-import com.adrianhruiz.tomadiaria.model.AllergyType
-import com.adrianhruiz.tomadiaria.model.AtcCode
 import com.adrianhruiz.tomadiaria.model.MedicationDetail
-import com.adrianhruiz.tomadiaria.model.PrincipioActivo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,21 +22,15 @@ import kotlinx.coroutines.launch
 data class MedicationDetailUiState(
     val isLoading: Boolean = true,
     val medication: MedicationDetail? = null,
-    val allergies: List<Allergy> = emptyList(),
-    val matches: List<AllergyMatch> = emptyList(),
     val errorMessage: String? = null,
     /** Motivos con los que este medicamento ya está en el historial. */
     val historyReasons: List<String> = emptyList(),
 ) {
-    /** Un medicamento desrecomendado por alergia no puede añadirse al historial. */
-    val canAddToHistory: Boolean get() = medication != null && matches.isEmpty()
-
     val isInHistory: Boolean get() = historyReasons.isNotEmpty()
 }
 
 class MedicationDetailViewModel(
     private val catalogRepository: MedicationCatalogRepository,
-    private val allergyRepository: AllergyRepository,
     historyRepository: MedicationHistoryRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -58,57 +45,17 @@ class MedicationDetailViewModel(
             try {
                 val detail = catalogRepository.getMedicationDetail(nregistro)
                 _uiState.update { it.copy(medication = detail, isLoading = false) }
-                recomputeMatches()
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = "No se pudo cargar el medicamento.")
                 }
             }
         }
-        allergyRepository.getAll()
-            .onEach { allergies ->
-                _uiState.update { it.copy(allergies = allergies) }
-                recomputeMatches()
-            }
-            .launchIn(viewModelScope)
-
         historyRepository.getByMedication(nregistro)
             .onEach { entries ->
                 _uiState.update { state -> state.copy(historyReasons = entries.map { it.reasonNombre }) }
             }
             .launchIn(viewModelScope)
-    }
-
-    private fun recomputeMatches() {
-        val state = _uiState.value
-        val medication = state.medication ?: return
-        _uiState.update { it.copy(matches = AllergyChecker.findMatches(medication, state.allergies)) }
-    }
-
-    fun toggleIngredientAllergy(principioActivo: PrincipioActivo) {
-        viewModelScope.launch {
-            val existing = _uiState.value.allergies.firstOrNull {
-                it.tipo == AllergyType.PRINCIPIO_ACTIVO && it.principioActivoId == principioActivo.id
-            }
-            if (existing != null) {
-                allergyRepository.delete(existing.id)
-            } else {
-                allergyRepository.addPrincipioActivo(principioActivo.id, principioActivo.nombre)
-            }
-        }
-    }
-
-    fun toggleFamiliaAllergy(atc: AtcCode) {
-        viewModelScope.launch {
-            val existing = _uiState.value.allergies.firstOrNull {
-                it.tipo == AllergyType.FAMILIA && it.atcCodigo == atc.codigo
-            }
-            if (existing != null) {
-                allergyRepository.delete(existing.id)
-            } else {
-                allergyRepository.addFamilia(atc.codigo, atc.nombre)
-            }
-        }
     }
 
     companion object {
@@ -117,7 +64,6 @@ class MedicationDetailViewModel(
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as TomaDiariaApp
                 MedicationDetailViewModel(
                     app.container.medicationCatalogRepository,
-                    app.container.allergyRepository,
                     app.container.medicationHistoryRepository,
                     createSavedStateHandle(),
                 )

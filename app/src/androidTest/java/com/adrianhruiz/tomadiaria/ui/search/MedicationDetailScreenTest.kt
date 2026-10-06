@@ -1,21 +1,15 @@
 package com.adrianhruiz.tomadiaria.ui.search
 
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adrianhruiz.tomadiaria.data.remote.FakeCimaApiService
-import com.adrianhruiz.tomadiaria.data.remote.dto.AtcDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.MedicamentoDetailDto
 import com.adrianhruiz.tomadiaria.data.remote.dto.PrincipioActivoDto
-import com.adrianhruiz.tomadiaria.data.repository.FakeAllergyRepository
 import com.adrianhruiz.tomadiaria.data.repository.FakeMedicationHistoryRepository
 import com.adrianhruiz.tomadiaria.data.repository.MedicationCatalogRepository
-import com.adrianhruiz.tomadiaria.model.Allergy
-import com.adrianhruiz.tomadiaria.model.AllergyType
 import com.adrianhruiz.tomadiaria.model.TakenEntry
 import com.adrianhruiz.tomadiaria.ui.theme.TomaDiariaTheme
 import org.junit.Rule
@@ -32,16 +26,11 @@ class MedicationDetailScreenTest {
         nregistro = "77758",
         nombre = "PARACETAMOL ABAMED 1G",
         principiosActivos = listOf(PrincipioActivoDto(id = 745, nombre = "PARACETAMOL")),
-        atcs = listOf(AtcDto(codigo = "N02BE01", nombre = "Paracetamol")),
     )
 
-    private fun setContent(
-        allergies: List<Allergy>,
-        history: FakeMedicationHistoryRepository = FakeMedicationHistoryRepository(),
-    ) {
+    private fun setContent(history: FakeMedicationHistoryRepository = FakeMedicationHistoryRepository()) {
         val viewModel = MedicationDetailViewModel(
             MedicationCatalogRepository(FakeCimaApiService(medicamentoDetailResponse = detailDto)),
-            FakeAllergyRepository(allergies),
             history,
             SavedStateHandle(mapOf("nregistro" to "77758")),
         )
@@ -58,36 +47,18 @@ class MedicationDetailScreenTest {
     }
 
     @Test
-    fun addToHistoryIsEnabledWhenThereIsNoAllergy() {
-        setContent(emptyList())
+    fun addToHistoryIsAlwaysEnabled() {
+        setContent()
 
         composeRule.onNodeWithText("Añadir al historial").assertIsEnabled()
     }
 
     @Test
-    fun addToHistoryIsDisabledWhenAnIngredientAllergyMatches() {
-        setContent(
-            listOf(
-                Allergy(
-                    id = "1",
-                    tipo = AllergyType.PRINCIPIO_ACTIVO,
-                    principioActivoId = 745,
-                    principioActivoNombre = "PARACETAMOL",
-                ),
-            ),
-        )
+    fun showsTheActiveIngredientsToIdentifyTheBox() {
+        setContent()
 
-        composeRule.onNodeWithText("Desrecomendado").assertExists()
-        composeRule.onNodeWithText("Añadir al historial").assertIsNotEnabled()
-    }
-
-    @Test
-    fun addToHistoryIsDisabledWhenAFamilyAllergyMatches() {
-        setContent(
-            listOf(Allergy(id = "1", tipo = AllergyType.FAMILIA, atcCodigo = "N02B", atcNombre = "Analgésicos")),
-        )
-
-        composeRule.onNodeWithText("Añadir al historial").assertIsNotEnabled()
+        composeRule.onNodeWithText("Componentes activos").assertExists()
+        composeRule.onNodeWithText("PARACETAMOL").assertExists()
     }
 
     @Test
@@ -106,7 +77,7 @@ class MedicationDetailScreenTest {
                 ),
             ),
         )
-        setContent(allergies = emptyList(), history = history)
+        setContent(history)
 
         composeRule.onNodeWithText("Ya en tu historial").assertExists()
         composeRule.onNodeWithText("Motivos registrados: Fiebre").assertExists()
@@ -114,18 +85,8 @@ class MedicationDetailScreenTest {
 
     @Test
     fun aMedicationOutsideTheHistoryDoesNotShowTheAddedBadge() {
-        setContent(emptyList())
+        setContent()
 
         composeRule.onNodeWithText("Ya en tu historial").assertDoesNotExist()
-    }
-
-    @Test
-    fun markingTheIngredientAsAllergicDisablesAddToHistoryOnTheFly() {
-        setContent(emptyList())
-        composeRule.onNodeWithText("Añadir al historial").assertIsEnabled()
-
-        composeRule.onNodeWithText("PARACETAMOL").performClick()
-
-        composeRule.onNodeWithText("Añadir al historial").assertIsNotEnabled()
     }
 }

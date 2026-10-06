@@ -6,7 +6,6 @@ import okhttp3.Response
 object CimaCacheTtl {
     const val SEARCH_MAX_AGE_SECONDS = 30 * 60
     const val DETAIL_MAX_AGE_SECONDS = 24 * 60 * 60
-    const val MAESTRAS_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 }
 
 /**
@@ -29,7 +28,6 @@ class CimaCacheInterceptor : Interceptor {
     private fun maxAgeSecondsFor(lastPathSegment: String?): Int? = when (lastPathSegment) {
         "medicamentos" -> CimaCacheTtl.SEARCH_MAX_AGE_SECONDS
         "medicamento" -> CimaCacheTtl.DETAIL_MAX_AGE_SECONDS
-        "maestras" -> CimaCacheTtl.MAESTRAS_MAX_AGE_SECONDS
         else -> null
     }
 }

@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -57,7 +56,6 @@ private fun records(count: Int) = if (count == 1) "1 registro" else "$count regi
 @Composable
 fun DashboardScreen(
     onNavigateSearch: () -> Unit,
-    onNavigateAllergies: () -> Unit,
     onNavigateHistory: () -> Unit,
     onNavigateReminders: () -> Unit,
     onLogout: () -> Unit,
@@ -176,12 +174,6 @@ fun DashboardScreen(
                 description = "Busca medicamentos y consulta si son recomendables para ti",
                 icon = Icons.Default.Search,
                 onClick = onNavigateSearch,
-            )
-            DashboardCard(
-                title = "Alergias",
-                description = "Gestiona tus alergias a componentes activos y familias",
-                icon = Icons.Default.Warning,
-                onClick = onNavigateAllergies,
             )
             DashboardCard(
                 title = "Medicamentos",

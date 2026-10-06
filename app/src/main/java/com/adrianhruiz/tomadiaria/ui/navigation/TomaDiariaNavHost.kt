@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -29,7 +28,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.adrianhruiz.tomadiaria.ui.addedit.AddEditEntryScreen
-import com.adrianhruiz.tomadiaria.ui.allergies.AllergiesScreen
 import com.adrianhruiz.tomadiaria.ui.auth.LoginScreen
 import com.adrianhruiz.tomadiaria.ui.auth.RegisterScreen
 import com.adrianhruiz.tomadiaria.ui.dashboard.DashboardScreen
@@ -45,7 +43,6 @@ private const val ROUTE_LOGIN = "login"
 private const val ROUTE_REGISTER = "register"
 private const val ROUTE_DASHBOARD = "dashboard"
 private const val ROUTE_SEARCH = "search"
-private const val ROUTE_ALLERGIES = "allergies"
 private const val ROUTE_HISTORY = "history"
 private const val ROUTE_REMINDERS = "reminders"
 private const val ROUTE_MEDICATION_DETAIL = "medicationDetail/{nregistro}"
@@ -80,7 +77,7 @@ fun TomaDiariaNavHost(
 @Composable
 private fun MainNavHost(startDestination: String, initialScheduleId: String?, onSignOut: () -> Unit) {
     val navController = rememberNavController()
-    val bottomBarRoutes = setOf(ROUTE_SEARCH, ROUTE_ALLERGIES, ROUTE_HISTORY, ROUTE_REMINDERS)
+    val bottomBarRoutes = setOf(ROUTE_SEARCH, ROUTE_HISTORY, ROUTE_REMINDERS)
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.hierarchy?.firstOrNull { it.route in bottomBarRoutes }?.route
 
@@ -105,18 +102,6 @@ private fun MainNavHost(startDestination: String, initialScheduleId: String?, on
                         },
                         icon = { Icon(Icons.Default.Search, contentDescription = null) },
                         label = { Text("Buscar") },
-                    )
-                    NavigationBarItem(
-                        selected = currentRoute == ROUTE_ALLERGIES,
-                        onClick = {
-                            navController.navigate(ROUTE_ALLERGIES) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(Icons.Default.Warning, contentDescription = null) },
-                        label = { Text("Alergias") },
                     )
                     NavigationBarItem(
                         selected = currentRoute == ROUTE_HISTORY,
@@ -165,7 +150,6 @@ private fun MainNavHost(startDestination: String, initialScheduleId: String?, on
             composable(ROUTE_DASHBOARD) {
                 DashboardScreen(
                     onNavigateSearch = { navController.navigate(ROUTE_SEARCH) },
-                    onNavigateAllergies = { navController.navigate(ROUTE_ALLERGIES) },
                     onNavigateHistory = { navController.navigate(ROUTE_HISTORY) },
                     onNavigateReminders = { navController.navigate(ROUTE_REMINDERS) },
                     onLogout = {
@@ -201,9 +185,6 @@ private fun MainNavHost(startDestination: String, initialScheduleId: String?, on
                     },
                     onBack = { navController.popBackStack() },
                 )
-            }
-            composable(ROUTE_ALLERGIES) {
-                AllergiesScreen(contentPadding = innerPadding)
             }
             composable(ROUTE_HISTORY) {
                 HistoryScreen(

@@ -5,10 +5,8 @@ import com.adrianhruiz.tomadiaria.data.backup.BackupRepository
 import com.adrianhruiz.tomadiaria.data.backup.FirestoreBackupRepository
 import com.adrianhruiz.tomadiaria.data.remote.NetworkModule
 import com.adrianhruiz.tomadiaria.data.remote.firebase.FirebaseModule
-import com.adrianhruiz.tomadiaria.data.repository.AllergyRepository
 import com.adrianhruiz.tomadiaria.data.repository.AuthRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirebaseAuthRepository
-import com.adrianhruiz.tomadiaria.data.repository.FirestoreAllergyRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirestoreMedicationHistoryRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirestoreReasonRepository
 import com.adrianhruiz.tomadiaria.data.repository.FirestoreScheduleRepository
@@ -42,9 +40,6 @@ class AppContainer(context: Context) {
 
     val medicationHistoryRepository: MedicationHistoryRepository =
         FirestoreMedicationHistoryRepository(FirebaseModule.firestore, authRepository)
-
-    val allergyRepository: AllergyRepository =
-        FirestoreAllergyRepository(FirebaseModule.firestore, authRepository, appScope)
 
     val reasonRepository: ReasonRepository =
         FirestoreReasonRepository(FirebaseModule.firestore, authRepository, appScope)
