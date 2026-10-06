@@ -11,3 +11,6 @@ local.properties
 app/build
 *.stackdump
 app/google-services.json
+
+# Firebase CLI
+firebase-debug.log
