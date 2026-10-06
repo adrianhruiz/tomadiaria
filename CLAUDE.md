@@ -59,6 +59,26 @@ TomaDiaria tiene **su propio proyecto Firebase**, separado del de MedicApp: los 
 usuarios reales no pueden mezclarse con los de uso personal. `app/google-services.json` no se
 versiona; la plantilla está en `app/google-services.json.example`.
 
+## Firma de release
+
+Google Play recibe un AAB firmado con la **clave de subida**; la clave con la que se firma lo
+que llega a los móviles la guarda Google (Play App Signing).
+
+- La clave está en `~/keystores/tomadiaria-upload.jks`, fuera del repo.
+- Sus datos van en `keystore.properties`, en la raíz del repo, que **no se versiona**:
+
+  ```properties
+  storeFile=/ruta/a/tomadiaria-upload.jks
+  storePassword=...
+  keyAlias=upload
+  keyPassword=...
+  ```
+
+- Sin ese fichero el debug compila igual y el release sale sin firmar.
+- El AAB para Play se genera con `gradlew bundleRelease` y queda en
+  `app/build/outputs/bundle/release/`.
+- Nunca subas la clave ni sus contraseñas al repo, ni las pegues en un commit o una issue.
+
 ## Privacidad (RGPD y Google Play)
 
 - La política de privacidad y la página de borrado de cuenta están en `hosting/` y se publican
