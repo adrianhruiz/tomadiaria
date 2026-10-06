@@ -15,3 +15,8 @@ app/google-services.json
 # Firebase CLI
 firebase-debug.log
 .firebase/
+
+# Firma de release: la clave y sus contraseñas nunca van al repo
+keystore.properties
+*.jks
+*.keystore
