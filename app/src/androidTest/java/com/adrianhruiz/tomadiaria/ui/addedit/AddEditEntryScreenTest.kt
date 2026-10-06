@@ -51,7 +51,7 @@ class AddEditEntryScreenTest {
     fun savingIsBlockedWhenTheMedicationAlreadyHasThatReason() {
         setContent(FakeMedicationHistoryRepository(listOf(existingEntry)))
 
-        composeRule.onNodeWithText("Motivo (ej. dolor de cabeza)").performTextInput("Dolor de cabeza")
+        composeRule.onNodeWithText("Motivo (ej. pauta de tu médico)").performTextInput("Dolor de cabeza")
 
         composeRule.onNodeWithText("Ya tienes este medicamento en el historial con ese motivo.").assertExists()
         composeRule.onNodeWithText("Guardar").assertIsNotEnabled()
@@ -61,7 +61,7 @@ class AddEditEntryScreenTest {
     fun savingIsAllowedWithADifferentReason() {
         setContent(FakeMedicationHistoryRepository(listOf(existingEntry)))
 
-        composeRule.onNodeWithText("Motivo (ej. dolor de cabeza)").performTextInput("Fiebre")
+        composeRule.onNodeWithText("Motivo (ej. pauta de tu médico)").performTextInput("Fiebre")
 
         composeRule.onNodeWithText("Guardar").assertIsEnabled()
     }
@@ -71,7 +71,7 @@ class AddEditEntryScreenTest {
         val history = FakeMedicationHistoryRepository()
         setContent(history)
 
-        composeRule.onNodeWithText("Motivo (ej. dolor de cabeza)").performTextInput("Fiebre")
+        composeRule.onNodeWithText("Motivo (ej. pauta de tu médico)").performTextInput("Fiebre")
         composeRule.onNodeWithText("Guardar").performClick()
         composeRule.waitForIdle()
 

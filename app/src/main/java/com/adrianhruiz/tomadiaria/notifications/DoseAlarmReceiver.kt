@@ -40,10 +40,19 @@ class DoseAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+        // En la pantalla de bloqueo, si el usuario oculta el contenido sensible, se ve esta
+        // versión sin el nombre del medicamento: qué toma alguien es un dato de salud.
+        val publicNotification = NotificationCompat.Builder(context, NotificationChannels.DOSE_REMINDERS_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_popup_reminder)
+            .setContentTitle("Hora de tu toma")
+            .build()
+
         val notification = NotificationCompat.Builder(context, NotificationChannels.DOSE_REMINDERS_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle("Hora de tomar $nombreMedicamento")
             .setContentText("Toma $doseNumber de $totalDoses")
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicNotification)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)

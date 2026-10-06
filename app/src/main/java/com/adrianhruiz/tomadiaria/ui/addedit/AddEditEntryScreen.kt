@@ -53,7 +53,7 @@ fun AddEditEntryScreen(
         OutlinedTextField(
             value = uiState.reasonInput,
             onValueChange = viewModel::onReasonInputChanged,
-            label = { Text("Motivo (ej. dolor de cabeza)") },
+            label = { Text("Motivo (ej. pauta de tu médico)") },
             isError = uiState.isDuplicate,
             supportingText = if (uiState.isDuplicate) {
                 { Text("Ya tienes este medicamento en el historial con ese motivo.") }
